@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Detail</title>
+    <link rel="stylesheet" href="/index.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
+</head>
+<body class="book-detail-page">
+    <div class="book-detail">
+         
+        <button id="next-button"  class="nav-button btn btn-primary ">←</button>
+        <button id="prev-button"  class="nav-button btn btn-primary ">→</button>
+        <img src='<%=book.cover_url%>' alt="Book Cover" class="book-cover-large" >
+        <h1><%=book.title%></h1>
+        <p contenteditable="true" id="description"><%= book.description %></p>
+        <button id="save-button" class="btn btn-primary">Save Changes</button>
+        <a href="/" class="btn btn-primary">Back to Home</a> 
+    </div>
+ 
+    <script>
+        const bookID = "<%= book.id %>";
+        document.getElementById("save-button").onclick=async function(){
+            const updatedDescription=document.getElementById("description").innerText;
+        
+
+            console.log("Book ID: ",bookID);
+            console.log("Updated Description: ",updatedDescription);
+            try{
+                const response=await fetch(`/updated-description/${bookID}`,{
+                    method:"POST",
+                    headers:{
+                        "Content-Type":"application/json"
+                    },
+                    body:JSON.stringify({description:updatedDescription})
+                });
+                if (response.ok) {
+            
+          } else {
+            console.log("response not ok",response);
+            alert("Error updating description hi");
+          }
+
+            }
+            catch(err){
+                console.log("error: ",error);
+                alert("error updating description");
+            }
+        };
+
+        //code for navigation button
+        async function fetchNavigationData(){
+            try{
+                const response=await fetch(`/book/navigation/${bookID}`);
+                const data=await response.json();
+
+                //handle left arrow
+                if(data.prevBookID){
+                    document.getElementById("prev-button").onclick=function(){
+                        window.location.href=`/book/${data.prevBookID}`;
+                    }
+                }
+                else{
+                    document.getElementById("prev-button").disabled=true;//disable if no prev book
+                }
+
+                //handle right arrow
+                if (data.nextBookID) {
+                    document.getElementById("next-button").onclick = function() {
+                        window.location.href = `/book/${data.nextBookID}`;
+                    };
+                } else {
+                    document.getElementById("next-button").disabled = true;  // Disable if no next book
+                }
+            }
+            catch(err){
+                console.log("Error fetching navigation data",err);
+            }
+        };
+
+        //run the function for navigation on page load
+        fetchNavigationData();
+    </script>
+</body>
+</html>
